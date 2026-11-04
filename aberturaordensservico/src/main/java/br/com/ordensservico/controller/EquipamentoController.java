@@ -1,6 +1,7 @@
 
 package br.com.ordensservico.controller;
 
+import br.com.ordensservico.dto.EquipamentoRequest;
 import br.com.ordensservico.model.Equipamento;
 import br.com.ordensservico.service.EquipamentoService;
 
@@ -25,35 +26,44 @@ public class EquipamentoController {
         this.service = service;
     }
 
+    // CADASTRAR EQUIPAMENTO
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Equipamento cadastrar(@Valid @RequestBody Equipamento dados) {
+    public Equipamento cadastrar(
+            @Valid @RequestBody EquipamentoRequest dados) {
+
         return service.cadastrar(dados);
     }
 
+    // LISTAR EQUIPAMENTOS
     @GetMapping
     public List<Equipamento> listar() {
         return service.listar();
     }
 
+    // BUSCAR EQUIPAMENTO POR ID
     @GetMapping("/{id}")
     public Equipamento buscar(@PathVariable Integer id) {
         return service.buscarPorId(id);
     }
 
+    // ATUALIZAR EQUIPAMENTO
     @PutMapping("/{id}")
     public Equipamento atualizar(
             @PathVariable Integer id,
-            @Valid @RequestBody Equipamento dados) {
+            @Valid @RequestBody EquipamentoRequest dados) {
+
         return service.atualizar(id, dados);
     }
 
+    // EXCLUIR EQUIPAMENTO
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluir(@PathVariable Integer id) {
         service.excluir(id);
     }
 
+    // TRATAR ERROS DE VALIDACAO
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> tratarErro(
             MethodArgumentNotValidException ex) {
