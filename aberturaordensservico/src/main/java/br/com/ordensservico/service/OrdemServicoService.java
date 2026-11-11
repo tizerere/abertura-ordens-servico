@@ -2,14 +2,18 @@
 package br.com.ordensservico.service;
 
 import br.com.ordensservico.dto.OrdemServicoRequest;
+import br.com.ordensservico.dto.EncerramentoOrdemServicoRequest;
+
 import br.com.ordensservico.model.OrdemServico;
 import br.com.ordensservico.model.Equipamento;
+
 import br.com.ordensservico.repository.OrdemServicoRepository;
 import br.com.ordensservico.repository.EquipamentoRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +24,7 @@ public class OrdemServicoService {
     private final OrdemServicoRepository repository;
     private final EquipamentoRepository equipamentoRepository;
 
+    // CONSTRUTOR
     public OrdemServicoService(
             OrdemServicoRepository repository,
             EquipamentoRepository equipamentoRepository) {
@@ -43,22 +48,30 @@ public class OrdemServicoService {
         return repository.save(ordem);
     }
 
-    // LISTAR
+    // LISTAR TODAS
     public List<OrdemServico> listar() {
         return repository.findAll();
     }
 
+    // LISTAR SOMENTE ORDENS ABERTAS
+    public List<OrdemServico> listarAbertas() {
+        return repository.findByDataEncerramentoIsNull();
+    }
+
     // BUSCAR POR ID
     public OrdemServico buscarPorId(Integer id) {
+
         return repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Ordem de serviço não encontrada"));
+                        "Ordem de serviço não encontrada"
+                ));
     }
 
     // ATUALIZAR
     public OrdemServico atualizar(
-            Integer id, OrdemServicoRequest dados) {
+            Integer id,
+            OrdemServicoRequest dados) {
 
         OrdemServico ordem = buscarPorId(id);
 
@@ -68,7 +81,6 @@ public class OrdemServicoService {
         ordem.setDescricao(dados.getDescricao());
         ordem.setEquipamento(equipamento);
 
-        // Mantém a data original de abertura
         return repository.save(ordem);
     }
 
@@ -80,12 +92,39 @@ public class OrdemServicoService {
         repository.delete(ordem);
     }
 
-    // VERIFICAR EQUIPAMENTO
+    // ENCERRAR ORDEM DE SERVICO
+    @Transactional
+    public OrdemServico encerrar(
+            Integer id,
+            EncerramentoOrdemServicoRequest dados) {
+
+        OrdemServico ordem = buscarPorId(id);
+
+        // Impede encerramento duplicado
+        if (ordem.getDataEncerramento() != null) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Esta ordem de serviço já foi encerrada"
+            );
+        }
+
+        // Registra a solucao
+        ordem.setSolucao(dados.getSolucao());
+
+        // Registra data e hora automaticamente
+        ordem.setDataEncerramento(LocalDateTime.now());
+
+        return repository.save(ordem);
+    }
+
+    // BUSCAR EQUIPAMENTO
     private Equipamento buscarEquipamento(Integer id) {
 
         return equipamentoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Equipamento não encontrado"));
+                        "Equipamento não encontrado"
+                ));
     }
 }

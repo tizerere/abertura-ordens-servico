@@ -2,6 +2,7 @@
 package br.com.ordensservico.controller;
 
 import br.com.ordensservico.dto.OrdemServicoRequest;
+import br.com.ordensservico.dto.EncerramentoOrdemServicoRequest;
 import br.com.ordensservico.model.OrdemServico;
 import br.com.ordensservico.service.OrdemServicoService;
 
@@ -26,7 +27,7 @@ public class OrdemServicoController {
         this.service = service;
     }
 
-    // CADASTRAR - POST
+    // CADASTRAR ORDEM
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrdemServico cadastrar(
@@ -35,13 +36,19 @@ public class OrdemServicoController {
         return service.cadastrar(dados);
     }
 
-    // LISTAR - GET
+    // LISTAR TODAS AS ORDENS
     @GetMapping
     public List<OrdemServico> listar() {
         return service.listar();
     }
 
-    // BUSCAR POR ID - GET
+    // LISTAR SOMENTE ORDENS ABERTAS
+    @GetMapping("/abertas")
+    public List<OrdemServico> listarAbertas() {
+        return service.listarAbertas();
+    }
+
+    // BUSCAR ORDEM POR ID
     @GetMapping("/{id}")
     public OrdemServico buscarPorId(
             @PathVariable Integer id) {
@@ -49,7 +56,7 @@ public class OrdemServicoController {
         return service.buscarPorId(id);
     }
 
-    // ATUALIZAR - PUT
+    // ATUALIZAR ORDEM
     @PutMapping("/{id}")
     public OrdemServico atualizar(
             @PathVariable Integer id,
@@ -58,12 +65,21 @@ public class OrdemServicoController {
         return service.atualizar(id, dados);
     }
 
-    // EXCLUIR - DELETE
+    // EXCLUIR ORDEM
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluir(@PathVariable Integer id) {
 
         service.excluir(id);
+    }
+
+    // ENCERRAR ORDEM
+    @PatchMapping("/{id}/encerramento")
+    public OrdemServico encerrar(
+            @PathVariable Integer id,
+            @Valid @RequestBody EncerramentoOrdemServicoRequest dados) {
+
+        return service.encerrar(id, dados);
     }
 
     // TRATAR ERROS DE VALIDACAO
